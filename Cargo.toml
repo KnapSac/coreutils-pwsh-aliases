@@ -1,0 +1,11 @@
+[package]
+name = "coreutils-pwsh-aliases"
+version = "0.1.0"
+edition = "2018"
+description = "Generate Powershell aliases for coreutils"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1.0.42"
+clap = "2.33.3"
