@@ -1,6 +1,8 @@
 use anyhow::Result;
 use clap::{crate_authors, crate_description, crate_name, crate_version, App, Arg};
-use std::{path::Path, process::Command};
+use std::{fs::OpenOptions, io::Write, process::Command};
+
+const ALIAS_SECTION_IDENT: &str = "### coreutils aliases ###";
 
 fn main() -> Result<()> {
     let matches = App::new(crate_name!())
@@ -20,10 +22,7 @@ fn main() -> Result<()> {
     let aliases_file = matches.value_of("aliases-file").unwrap();
     println!("Appending aliases to {}", aliases_file);
 
-    let file = Path::new(aliases_file);
-    if !file.exists() {
-        todo!()
-    }
+    let mut file = OpenOptions::new().append(true).open(aliases_file)?;
 
     let coreutils_help_output = Command::new("coreutils").arg("-h").output()?.stdout;
     let output = String::from_utf8(coreutils_help_output)?;
@@ -44,12 +43,19 @@ fn main() -> Result<()> {
         functions_to_alias.push(function);
     }
 
-    for alias in functions_to_alias
-        .iter()
-        .map(|function| format!("Set-Alias -Name {} -Value Get-{}", function, function))
-    {
-        println!("{}", alias);
+    write!(file, "\r\n")?;
+    write!(file, "{}\r\n", ALIAS_SECTION_IDENT)?;
+
+    for alias in functions_to_alias.iter().map(|function| {
+        format!(
+            "Set-Alias -Name {} -Value Get-{} -Option AllScope",
+            function, function
+        )
+    }) {
+        write!(file, "{}\r\n", alias)?;
     }
+
+    write!(file, "\r\n")?;
 
     for function in functions_to_alias.iter().map(|function| {
         format!(
@@ -57,8 +63,11 @@ fn main() -> Result<()> {
             function, function
         )
     }) {
-        println!("{}", function);
+        write!(file, "{}\r\n", function)?;
     }
+
+    write!(file, "\r\n")?;
+    write!(file, "{}\r\n", ALIAS_SECTION_IDENT)?;
 
     Ok(())
 }
