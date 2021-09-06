@@ -27,6 +27,9 @@ fn main() -> Result<()> {
     let coreutils_help_output = Command::new("coreutils").arg("-h").output()?.stdout;
     let output = String::from_utf8(coreutils_help_output)?;
 
+    // These commands have readonly or constant pwsh aliases, as such they need a postfix
+    let functions_to_postfix = vec!["sleep", "sort", "tee"];
+
     let functions = output
         .lines()
         .filter(|line| !line.is_empty() && line.starts_with(' '))
@@ -40,7 +43,11 @@ fn main() -> Result<()> {
             continue;
         }
 
-        functions_to_alias.push(function);
+        if functions_to_postfix.contains(&function) {
+            functions_to_alias.push(format!("{}-uu", function));
+        } else {
+            functions_to_alias.push(function.to_string());
+        }
     }
 
     write!(file, "\r\n")?;
