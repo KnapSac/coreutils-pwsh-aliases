@@ -46,7 +46,7 @@ fn main() -> Result<()> {
         if functions_to_postfix.contains(&function) {
             functions_to_alias.push(format!("{}-uu", function));
         } else {
-            functions_to_alias.push(function.to_string());
+            functions_to_alias.push(function.replace('-', "_").to_string());
         }
     }
 
